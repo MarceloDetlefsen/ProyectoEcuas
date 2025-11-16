@@ -105,8 +105,8 @@ def ed_primer_orden(t: float, y: np.ndarray) -> np.ndarray:
     return np.array([-2*y[0] + np.exp(-t)])
 
 def solucion_analitica_1er_orden(t: np.ndarray) -> np.ndarray:
-    """Solución analítica: y(t) = (1 + t)e^(-t)"""
-    return (1 + t) * np.exp(-t)
+    """Solución analítica correcta: y(t) = e^{-t}"""
+    return np.exp(-t)
 
 
 # 2. ED de segundo orden: y''(t) + 3y'(t) + 2y(t) = 0, y(0) = 1, y'(0) = 0
@@ -134,12 +134,14 @@ def sistema_lineal(t: float, y: np.ndarray) -> np.ndarray:
 
 def solucion_analitica_sistema_lineal(t: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Solución analítica usando exponencial de matrices
-    x(t) = (2e^(5t) - e^(2t)) / 1
-    y(t) = (2e^(5t) + 2e^(2t)) / 1
+    Solución analítica real para el sistema con condiciones iniciales x(0)=1, y(0)=0.
+    x(t) = e^{7t/2} ( cos( sqrt(7)/2 * t ) + (1/sqrt(7)) sin( sqrt(7)/2 * t ) )
+    y(t) = - (4/sqrt(7)) e^{7t/2} sin( sqrt(7)/2 * t )
     """
-    x = (2*np.exp(5*t) - np.exp(2*t)) / 1
-    y = (2*np.exp(5*t) + 2*np.exp(2*t)) / 1
+    omega = np.sqrt(7) / 2.0
+    expfac = np.exp(7.0 * t / 2.0)
+    x = expfac * (np.cos(omega * t) + (1.0 / np.sqrt(7.0)) * np.sin(omega * t))
+    y = - (4.0 / np.sqrt(7.0)) * expfac * np.sin(omega * t)
     return x, y
 
 
