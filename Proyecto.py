@@ -94,6 +94,7 @@ def metodo_rk4(f: Callable, t0: float, y0: np.ndarray, tf: float, h: float) -> T
     
     return t, y
 
+
 # ============================================================================
 # DEFINICIÓN DE ECUACIONES DIFERENCIALES
 # ============================================================================
@@ -153,6 +154,56 @@ def sistema_no_lineal(t: float, y: np.ndarray) -> np.ndarray:
         y1 - y1*y2 + np.sin(np.pi * t),
         y1*y2 - y1
     ])
+
+
+# ============================================================================
+# FUNCIONES DE ANÁLISIS
+# ============================================================================
+
+def calcular_error(y_num: np.ndarray, y_analitica: np.ndarray) -> dict:
+    """Calcula diferentes métricas de error"""
+    error_abs = np.abs(y_num - y_analitica)
+    return {
+        'max': np.max(error_abs),
+        'medio': np.mean(error_abs),
+        'rmse': np.sqrt(np.mean(error_abs**2))
+    }
+
+
+def estudio_convergencia(f: Callable, y0: np.ndarray, t0: float, tf: float, 
+                        y_analitica_func: Callable, pasos: List[float]) -> pd.DataFrame:
+    """Realiza estudio de convergencia variando el tamaño de paso"""
+    resultados = []
+    
+    for h in pasos:
+        # Heun
+        t_heun, y_heun = metodo_heun(f, t0, y0, tf, h)
+        y_anal_heun = y_analitica_func(t_heun)
+        if y_heun.ndim > 1:
+            y_heun_comp = y_heun[:, 0]
+        else:
+            y_heun_comp = y_heun
+        error_heun = calcular_error(y_heun_comp, y_anal_heun)
+        
+        # RK4
+        t_rk4, y_rk4 = metodo_rk4(f, t0, y0, tf, h)
+        y_anal_rk4 = y_analitica_func(t_rk4)
+        if y_rk4.ndim > 1:
+            y_rk4_comp = y_rk4[:, 0]
+        else:
+            y_rk4_comp = y_rk4
+        error_rk4 = calcular_error(y_rk4_comp, y_anal_rk4)
+        
+        resultados.append({
+            'h': h,
+            'Heun_RMSE': error_heun['rmse'],
+            'RK4_RMSE': error_rk4['rmse'],
+            'Heun_Max': error_heun['max'],
+            'RK4_Max': error_rk4['max']
+        })
+    
+    return pd.DataFrame(resultados)
+
 
 # ============================================================================
 # FUNCIONES DE VISUALIZACIÓN
@@ -216,3 +267,126 @@ def graficar_sistema(t: np.ndarray, y: np.ndarray, titulo: str, metodo: str):
     plt.tight_layout()
     plt.savefig(f'{titulo.replace(" ", "_")}_{metodo}.png', dpi=300, bbox_inches='tight')
     plt.show()
+
+
+# ============================================================================
+# PROGRAMA PRINCIPAL
+# ============================================================================
+
+def main():
+    """Función principal que ejecuta todo el análisis"""
+    
+    print("="*70)
+    print("PROYECTO FINAL - ECUACIONES DIFERENCIALES 1")
+    print("Métodos: Heun (Euler Mejorado) y RK4")
+    print("="*70)
+    
+    # Parámetros generales
+    h = 0.1  # Tamaño de paso
+    
+    # ========================================================================
+    # 1. ED DE PRIMER ORDEN
+    # ========================================================================
+    print("\n1. ECUACIÓN DIFERENCIAL DE PRIMER ORDEN")
+    print("-" * 70)
+    
+    t0, tf = 0, 5
+    y0_1 = np.array([1.0])
+    
+    # Heun
+    t_heun1, y_heun1 = metodo_heun(ed_primer_orden, t0, y0_1, tf, h)
+    y_anal1 = solucion_analitica_1er_orden(t_heun1)
+    error_heun1 = calcular_error(y_heun1[:, 0], y_anal1)
+    print(f"Heun - Error RMSE: {error_heun1['rmse']:.6e}")
+    
+    # RK4
+    t_rk4_1, y_rk4_1 = metodo_rk4(ed_primer_orden, t0, y0_1, tf, h)
+    error_rk4_1 = calcular_error(y_rk4_1[:, 0], y_anal1)
+    print(f"RK4  - Error RMSE: {error_rk4_1['rmse']:.6e}")
+    
+    # Visualización
+    graficar_comparacion(t_heun1, y_heun1[:, 0], y_anal1, 
+                        "ED_Primer_Orden", "Heun")
+    graficar_comparacion(t_rk4_1, y_rk4_1[:, 0], y_anal1, 
+                        "ED_Primer_Orden", "RK4")
+    
+    # Estudio de convergencia
+    print("\nEstudio de convergencia:")
+    pasos = [0.5, 0.2, 0.1, 0.05, 0.01]
+    conv1 = estudio_convergencia(ed_primer_orden, y0_1, t0, tf, 
+                                 solucion_analitica_1er_orden, pasos)
+    print(conv1.to_string(index=False))
+    
+    # ========================================================================
+    # 2. ED DE SEGUNDO ORDEN
+    # ========================================================================
+    print("\n\n2. ECUACIÓN DIFERENCIAL DE SEGUNDO ORDEN")
+    print("-" * 70)
+    
+    y0_2 = np.array([1.0, 0.0])  # [y(0), y'(0)]
+    
+    # Heun
+    t_heun2, y_heun2 = metodo_heun(ed_segundo_orden, t0, y0_2, tf, h)
+    y_anal2 = solucion_analitica_2do_orden(t_heun2)
+    error_heun2 = calcular_error(y_heun2[:, 0], y_anal2)
+    print(f"Heun - Error RMSE: {error_heun2['rmse']:.6e}")
+    
+    # RK4
+    t_rk4_2, y_rk4_2 = metodo_rk4(ed_segundo_orden, t0, y0_2, tf, h)
+    error_rk4_2 = calcular_error(y_rk4_2[:, 0], y_anal2)
+    print(f"RK4  - Error RMSE: {error_rk4_2['rmse']:.6e}")
+    
+    # Visualización
+    graficar_comparacion(t_heun2, y_heun2[:, 0], y_anal2, 
+                        "ED_Segundo_Orden", "Heun")
+    graficar_comparacion(t_rk4_2, y_rk4_2[:, 0], y_anal2, 
+                        "ED_Segundo_Orden", "RK4")
+    
+    # ========================================================================
+    # 3. SISTEMA 2X2 LINEAL
+    # ========================================================================
+    print("\n\n3. SISTEMA DE ECUACIONES 2X2 LINEAL")
+    print("-" * 70)
+    
+    y0_3 = np.array([1.0, 0.0])
+    
+    # Heun
+    t_heun3, y_heun3 = metodo_heun(sistema_lineal, t0, y0_3, tf, h)
+    print(f"Heun - Valores finales: x({tf}) = {y_heun3[-1, 0]:.6f}, y({tf}) = {y_heun3[-1, 1]:.6f}")
+    
+    # RK4
+    t_rk4_3, y_rk4_3 = metodo_rk4(sistema_lineal, t0, y0_3, tf, h)
+    print(f"RK4  - Valores finales: x({tf}) = {y_rk4_3[-1, 0]:.6f}, y({tf}) = {y_rk4_3[-1, 1]:.6f}")
+    
+    # Visualización
+    graficar_sistema(t_heun3, y_heun3, "Sistema_Lineal", "Heun")
+    graficar_sistema(t_rk4_3, y_rk4_3, "Sistema_Lineal", "RK4")
+    
+    # ========================================================================
+    # 4. SISTEMA 2X2 NO LINEAL
+    # ========================================================================
+    print("\n\n4. SISTEMA DE ECUACIONES 2X2 NO LINEAL (LOTKA-VOLTERRA)")
+    print("-" * 70)
+    
+    tf_nl = 20  # Tiempo más largo para observar comportamiento
+    y0_4 = np.array([2.0, 1.0])
+    
+    # Heun
+    t_heun4, y_heun4 = metodo_heun(sistema_no_lineal, t0, y0_4, tf_nl, h)
+    print(f"Heun - Valores finales: y1({tf_nl}) = {y_heun4[-1, 0]:.6f}, y2({tf_nl}) = {y_heun4[-1, 1]:.6f}")
+    
+    # RK4
+    t_rk4_4, y_rk4_4 = metodo_rk4(sistema_no_lineal, t0, y0_4, tf_nl, h)
+    print(f"RK4  - Valores finales: y1({tf_nl}) = {y_rk4_4[-1, 0]:.6f}, y2({tf_nl}) = {y_rk4_4[-1, 1]:.6f}")
+    
+    # Visualización
+    graficar_sistema(t_heun4, y_heun4, "Sistema_No_Lineal", "Heun")
+    graficar_sistema(t_rk4_4, y_rk4_4, "Sistema_No_Lineal", "RK4")
+    
+    print("\n" + "="*70)
+    print("ANÁLISIS COMPLETADO")
+    print("="*70)
+
+
+if __name__ == "__main__":
+    main()
