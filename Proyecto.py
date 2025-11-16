@@ -153,3 +153,66 @@ def sistema_no_lineal(t: float, y: np.ndarray) -> np.ndarray:
         y1 - y1*y2 + np.sin(np.pi * t),
         y1*y2 - y1
     ])
+
+# ============================================================================
+# FUNCIONES DE VISUALIZACIÓN
+# ============================================================================
+
+def graficar_comparacion(t: np.ndarray, y_num: np.ndarray, y_analitica: np.ndarray, 
+                         titulo: str, metodo: str):
+    """Grafica comparación entre solución numérica y analítica"""
+    plt.figure(figsize=(12, 5))
+    
+    # Gráfica de soluciones
+    plt.subplot(1, 2, 1)
+    plt.plot(t, y_analitica, 'b-', label='Analítica', linewidth=2)
+    plt.plot(t, y_num, 'r--', label=f'{metodo}', linewidth=2)
+    plt.xlabel('t')
+    plt.ylabel('y(t)')
+    plt.title(f'{titulo} - Comparación')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    # Gráfica de error
+    plt.subplot(1, 2, 2)
+    error = np.abs(y_num - y_analitica)
+    plt.plot(t, error, 'g-', linewidth=2)
+    plt.xlabel('t')
+    plt.ylabel('Error absoluto')
+    plt.title('Error absoluto')
+    plt.grid(True, alpha=0.3)
+    plt.yscale('log')
+    
+    plt.tight_layout()
+    plt.savefig(f'{titulo.replace(" ", "_")}_{metodo}.png', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+def graficar_sistema(t: np.ndarray, y: np.ndarray, titulo: str, metodo: str):
+    """Grafica sistema de ecuaciones 2x2"""
+    plt.figure(figsize=(12, 5))
+    
+    # Evolución temporal
+    plt.subplot(1, 2, 1)
+    plt.plot(t, y[:, 0], 'b-', label='y₁(t)', linewidth=2)
+    plt.plot(t, y[:, 1], 'r-', label='y₂(t)', linewidth=2)
+    plt.xlabel('t')
+    plt.ylabel('Valores')
+    plt.title(f'{titulo} - {metodo}')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    # Plano fase
+    plt.subplot(1, 2, 2)
+    plt.plot(y[:, 0], y[:, 1], 'b-', linewidth=2)
+    plt.plot(y[0, 0], y[0, 1], 'go', markersize=10, label='Inicio')
+    plt.plot(y[-1, 0], y[-1, 1], 'ro', markersize=10, label='Final')
+    plt.xlabel('y₁')
+    plt.ylabel('y₂')
+    plt.title('Plano fase')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(f'{titulo.replace(" ", "_")}_{metodo}.png', dpi=300, bbox_inches='tight')
+    plt.show()
