@@ -117,5 +117,7 @@ Condiciones iniciales: y₁(0) = 2, y₂(0) = 1
 ## 👨‍💻 Autores
 
 Marcelo Detlefsen - 24554
+
 Julián Divas - 24687
+
 Marco Diaz - 24229
