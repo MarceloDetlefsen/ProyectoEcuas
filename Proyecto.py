@@ -13,10 +13,10 @@ Descripción: Implementación de métodos numéricos: Heun (Euler Mejorado) y RK
              así como sistemas de ecuaciones lineales y no lineales.
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Callable, Tuple, List
-import pandas as pd
+import numpy as np # Biblioteca para manejo de arrays y operaciones numéricas
+import matplotlib.pyplot as plt # Biblioteca para visualización de datos
+from typing import Callable, Tuple, List # Tipos para anotaciones de funciones
+import pandas as pd # Biblioteca para manejo de datos en tablas
 
 
 # ============================================================================
@@ -26,6 +26,7 @@ import pandas as pd
 def metodo_heun(f: Callable, t0: float, y0: np.ndarray, tf: float, h: float) -> Tuple[np.ndarray, np.ndarray]:
     """
     Implementa el método de Heun (Euler Mejorado) para resolver EDOs.
+    Método predictor-corrector.
     
     Parámetros:
     -----------
